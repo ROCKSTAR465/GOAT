@@ -53,7 +53,12 @@ export default function LoginPage() {
 
       if (response.ok) {
         toast.success('Successfully logged in!');
-        router.push('/welcome');
+        // Redirect based on user role from API response
+        if (data.redirectUrl) {
+          router.push(data.redirectUrl);
+        } else {
+          router.push('/welcome');
+        }
       } else {
         setError(data.message || 'Login failed');
         toast.error(data.message || 'Login failed');

@@ -38,16 +38,45 @@ export default function WelcomePage() {
     return () => unsubscribe();
   }, [router]);
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (!user) return;
     
     setRedirecting(true);
-    const redirectPath = user.role === 'executive' 
-      ? '/dashboard/executive' 
-      : '/dashboard/employee';
     
-    toast.success(`Welcome back, ${user.name}!`);
-    router.push(redirectPath);
+    try {
+      // Get fresh ID token and call login API to set JWT cookie
+      const idToken = await auth.currentUser?.getIdToken();
+      
+      if (idToken) {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ idToken }),
+        });
+
+        if (response.ok) {
+          const redirectPath = user.role === 'executive' 
+            ? '/dashboard/executive' 
+            : '/dashboard/employee';
+          
+          toast.success(`Welcome back, ${user.name}!`);
+          router.push(redirectPath);
+        } else {
+          throw new Error('Failed to create session');
+        }
+      } else {
+        throw new Error('No authentication token');
+      }
+    } catch (error) {
+      console.error('Session creation error:', error);
+      toast.error('Failed to create session. Please try logging in again.');
+      await auth.signOut();
+      router.push('/login');
+    } finally {
+      setRedirecting(false);
+    }
   };
 
   if (loading) {

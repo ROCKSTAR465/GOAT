@@ -9,11 +9,12 @@ if (!admin.apps.length) {
   const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, '\n');
 
   if (!projectId || !clientEmail || !privateKey) {
-    console.error('❌ Missing Firebase Admin credentials in Vercel environment variables');
+    console.error('❌ Missing Firebase Admin credentials in environment variables');
     console.error('Required Vercel environment variables:');
     console.error('- NEXT_PUBLIC_FIREBASE_PROJECT_ID');
     console.error('- FIREBASE_ADMIN_CLIENT_EMAIL');
     console.error('- FIREBASE_ADMIN_PRIVATE_KEY');
+    console.error('\nMake sure these are set in your Vercel deployment settings.');
     process.exit(1);
   }
 

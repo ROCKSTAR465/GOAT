@@ -9,7 +9,7 @@ import {
   onAuthStateChanged,
   sendPasswordResetEmail
 } from 'firebase/auth';
-import { doc, getDoc, setDoc, serverTimestamp, collection, addDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, collection, addDoc, Timestamp } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase/config';
 import { User, UserRole } from '@/lib/types/models';
 import { useRouter } from 'next/navigation';
@@ -60,8 +60,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             name: firebaseUser.displayName || 'User',
             role: 'employee' as UserRole,
             designation: 'Team Member',
-            created_at: serverTimestamp(),
-            updated_at: serverTimestamp(),
+            created_at: Timestamp.now(),
+            updated_at: Timestamp.now(),
           };
           await setDoc(doc(db, 'users', firebaseUser.uid), userData);
           setUser({ id: firebaseUser.uid, ...userData } as User);
@@ -82,7 +82,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         userId,
         device: navigator.userAgent,
         ip: 'Unknown', // In production, get from server
-        timestamp: serverTimestamp(),
+        timestamp: Timestamp.now(),
         status,
       };
       await addDoc(collection(db, 'users', userId, 'login_history'), loginData);
@@ -123,8 +123,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         name,
         role,
         designation: role === 'executive' ? 'Executive' : 'Team Member',
-        created_at: serverTimestamp(),
-        updated_at: serverTimestamp(),
+        created_at: Timestamp.now(),
+        updated_at: Timestamp.now(),
       };
       
       await setDoc(doc(db, 'users', result.user.uid), userData);

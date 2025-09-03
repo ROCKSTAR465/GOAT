@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { 
+import {
   User as FirebaseUser,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -76,39 +76,37 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return () => unsubscribe();
   }, []);
 
-  const logLoginHistory = async (userId: string, status: 'success' | 'failed') => {
-    try {
-      const loginData = {
-        userId,
-        device: navigator.userAgent,
-        ip: 'Unknown', // In production, get from server
-        timestamp: Timestamp.now(),
-        status,
-      };
-      await addDoc(collection(db, 'users', userId, 'login_history'), loginData);
-    } catch (error) {
-      console.error('Error logging login history:', error);
-    }
-  };
-
   const signIn = async (email: string, password: string) => {
     try {
-      const result = await signInWithEmailAndPassword(auth, email, password);
-      await logLoginHistory(result.user.uid, 'success');
-      
-      // Fetch user data
-      const userDoc = await getDoc(doc(db, 'users', result.user.uid));
-      if (userDoc.exists()) {
-        const userData = { id: result.user.uid, ...userDoc.data() } as User;
-        setUser(userData);
-        
-        // Redirect based on role
-        toast.success('Successfully signed in!');
-        router.push('/welcome');
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const idToken = await userCredential.user.getIdToken();
+
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ idToken }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success('Successfully logged in!');
+        // The onAuthStateChanged listener will handle setting user state.
+        // We just perform the redirect.
+        if (data.redirectUrl) {
+          router.push(data.redirectUrl);
+        } else {
+          router.push('/welcome');
+        }
+      } else {
+        // If our backend returns an error, we'll use its message.
+        throw new Error(data.message || 'Login failed.');
       }
-    } catch (error: any) {
-      console.error('Sign in error:', error);
-      toast.error(error.message || 'Failed to sign in');
+    } catch (error) {
+      // Re-throw the error so the calling component can handle it (e.g., show a message).
+      console.error("Sign in error in AuthContext:", error);
       throw error;
     }
   };
@@ -116,7 +114,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signUp = async (email: string, password: string, name: string, role: UserRole) => {
     try {
       const result = await createUserWithEmailAndPassword(auth, email, password);
-      
+
       // Create user document in Firestore
       const userData = {
         email,
@@ -126,11 +124,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         created_at: Timestamp.now(),
         updated_at: Timestamp.now(),
       };
-      
+
       await setDoc(doc(db, 'users', result.user.uid), userData);
       setUser({ id: result.user.uid, ...userData } as User);
-      
-      await logLoginHistory(result.user.uid, 'success');
+
+      // Note: A robust implementation would also have a backend endpoint for signup
+      // to create a session, similar to the login flow. For now, we'll keep the client-side history log.
+      const loginData = {
+        userId: result.user.uid,
+        device: navigator.userAgent,
+        ip: 'Unknown',
+        timestamp: Timestamp.now(),
+        status: 'success',
+      };
+      await addDoc(collection(db, 'users', result.user.uid, 'login_history'), loginData);
+
       toast.success('Account created successfully!');
       router.push('/welcome');
     } catch (error: any) {

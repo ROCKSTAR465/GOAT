@@ -12,7 +12,6 @@ import {
   limit,
   startAfter,
   Timestamp,
-  serverTimestamp,
   DocumentData,
   QueryConstraint,
   writeBatch,
@@ -43,8 +42,8 @@ export class FirestoreService {
     try {
       const docRef = await addDoc(collection(db, collectionName), {
         ...data,
-        created_at: serverTimestamp(),
-        updated_at: serverTimestamp(),
+        created_at: Timestamp.now(),
+        updated_at: Timestamp.now(),
       });
       return docRef.id;
     } catch (error) {
@@ -98,7 +97,7 @@ export class FirestoreService {
       const docRef = doc(db, collectionName, id);
       await updateDoc(docRef, {
         ...data,
-        updated_at: serverTimestamp(),
+        updated_at: Timestamp.now(),
       });
     } catch (error) {
       console.error(`Error updating document in ${collectionName}:`, error);
@@ -178,7 +177,7 @@ export class ShootService {
       shootId,
       userId,
       role,
-      assigned_at: serverTimestamp(),
+      assigned_at: Timestamp.now(),
     };
     await addDoc(collection(db, 'shoots', shootId, 'assignments'), assignmentData);
   }
@@ -233,7 +232,7 @@ export class InvoiceService {
   static async markInvoiceAsPaid(invoiceId: string, paymentMethod: string): Promise<void> {
     return FirestoreService.update('invoices', invoiceId, {
       status: 'paid',
-      paid_at: serverTimestamp(),
+      paid_at: Timestamp.now(),
       payment_method: paymentMethod,
     });
   }

@@ -1,9 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '@/lib/firebase/config';
+import { useAuth } from '@/lib/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,7 +12,7 @@ import { Loader2, Mail, Lock, User, Briefcase } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function LoginPage() {
-  const router = useRouter();
+  const { signIn } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -34,37 +32,10 @@ export default function LoginPage() {
     setError('');
 
     try {
-      // Sign in with Firebase Auth
-      const userCredential = await signInWithEmailAndPassword(auth, loginEmail, loginPassword);
-      
-      // Get ID token
-      const idToken = await userCredential.user.getIdToken();
-
-      // Send to backend to create session
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ idToken }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        toast.success('Successfully logged in!');
-        // Redirect based on user role from API response
-        if (data.redirectUrl) {
-          router.push(data.redirectUrl);
-        } else {
-          router.push('/welcome');
-        }
-      } else {
-        setError(data.message || 'Login failed');
-        toast.error(data.message || 'Login failed');
-      }
+      await signIn(loginEmail, loginPassword);
+      // Redirect is handled by the signIn function in AuthContext
     } catch (error: any) {
-      console.error('Login error:', error);
+      console.error('Login page error:', error);
       const errorMessage = error.code === 'auth/user-not-found' 
         ? 'No account found with this email'
         : error.code === 'auth/wrong-password'

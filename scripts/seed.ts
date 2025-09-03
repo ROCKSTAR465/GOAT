@@ -1,4 +1,5 @@
 import * as admin from 'firebase-admin';
+import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { faker } from '@faker-js/faker';
 
 // Initialize Firebase Admin using Vercel environment variables
@@ -109,8 +110,8 @@ async function createUsers() {
         role: userData.role,
         designation: userData.designation,
         avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${userData.name}`,
-        created_at: admin.firestore.FieldValue.serverTimestamp(),
-        updated_at: admin.firestore.FieldValue.serverTimestamp(),
+        created_at: FieldValue.serverTimestamp(),
+        updated_at: FieldValue.serverTimestamp(),
       });
 
       createdUsers.push({ ...userData, id: userRecord.uid });
@@ -148,8 +149,8 @@ async function createClients() {
       ...client,
       address: faker.location.streetAddress(),
       notes: faker.lorem.sentence(),
-      created_at: admin.firestore.FieldValue.serverTimestamp(),
-      updated_at: admin.firestore.FieldValue.serverTimestamp(),
+      created_at: FieldValue.serverTimestamp(),
+      updated_at: FieldValue.serverTimestamp(),
     });
     createdClients.push({ ...client, id: docRef.id });
     console.log(`   Created client: ${client.name}`);
@@ -175,15 +176,15 @@ async function createTasks(users: any[]) {
       description: faker.lorem.paragraph(),
       status,
       priority: faker.helpers.arrayElement(priorities),
-      deadline: admin.firestore.Timestamp.fromDate(
+      deadline: Timestamp.fromDate(
         randomDate(new Date(), new Date(Date.now() + 30 * 24 * 60 * 60 * 1000))
       ),
       assigned_to: assignedTo.map(u => u.id),
       created_by: faker.helpers.arrayElement(users).id,
       project: faker.company.name(),
       tags: faker.helpers.arrayElements(['urgent', 'client-request', 'internal', 'review', 'production'], 2),
-      created_at: admin.firestore.Timestamp.fromDate(createdDate),
-      updated_at: admin.firestore.Timestamp.fromDate(
+      created_at: Timestamp.fromDate(createdDate),
+      updated_at: Timestamp.fromDate(
         status === 'completed' ? randomDate(createdDate, new Date()) : createdDate
       ),
     });
@@ -206,15 +207,15 @@ async function createShoots(users: any[], clients: any[]) {
     const shootRef = await db.collection('shoots').add({
       clientId: faker.helpers.arrayElement(clients).id,
       title: `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()} Shoot`,
-      date: admin.firestore.Timestamp.fromDate(shootDate),
+      date: Timestamp.fromDate(shootDate),
       location: faker.location.city() + ', ' + faker.location.state(),
       details: faker.lorem.paragraph(),
       status: faker.helpers.arrayElement(statuses),
       equipment: faker.helpers.arrayElements(['Camera A', 'Camera B', 'Drone', 'Lights', 'Microphones'], 3),
       notes: faker.lorem.sentence(),
       created_by: faker.helpers.arrayElement(users).id,
-      created_at: admin.firestore.FieldValue.serverTimestamp(),
-      updated_at: admin.firestore.FieldValue.serverTimestamp(),
+      created_at: FieldValue.serverTimestamp(),
+      updated_at: FieldValue.serverTimestamp(),
     });
 
     // Add shoot assignments
@@ -228,7 +229,7 @@ async function createShoots(users: any[], clients: any[]) {
         shootId: shootRef.id,
         userId: employee.id,
         role: faker.helpers.arrayElement(['photographer', 'videographer', 'assistant', 'editor']),
-        assigned_at: admin.firestore.FieldValue.serverTimestamp(),
+        assigned_at: FieldValue.serverTimestamp(),
       });
     }
   }
@@ -256,10 +257,10 @@ async function createLeads(users: any[]) {
       reason: status === 'lost' ? faker.lorem.sentence() : undefined,
       handled_by: faker.helpers.arrayElement(users.filter(u => u.role === 'executive')).id,
       notes: faker.lorem.sentence(),
-      created_at: admin.firestore.Timestamp.fromDate(
+      created_at: Timestamp.fromDate(
         randomDate(new Date(Date.now() - 60 * 24 * 60 * 60 * 1000), new Date())
       ),
-      updated_at: admin.firestore.FieldValue.serverTimestamp(),
+      updated_at: FieldValue.serverTimestamp(),
     });
   }
   
@@ -304,15 +305,15 @@ async function createInvoices(clients: any[]) {
       total,
       status,
       items,
-      issued_at: admin.firestore.Timestamp.fromDate(issuedDate),
-      due_date: admin.firestore.Timestamp.fromDate(dueDate),
+      issued_at: Timestamp.fromDate(issuedDate),
+      due_date: Timestamp.fromDate(dueDate),
       paid_at: status === 'paid' 
-        ? admin.firestore.Timestamp.fromDate(randomDate(issuedDate, new Date()))
+        ? Timestamp.fromDate(randomDate(issuedDate, new Date()))
         : undefined,
       payment_method: status === 'paid' ? faker.helpers.arrayElement(paymentMethods) : undefined,
       notes: faker.lorem.sentence(),
-      created_at: admin.firestore.Timestamp.fromDate(issuedDate),
-      updated_at: admin.firestore.FieldValue.serverTimestamp(),
+      created_at: Timestamp.fromDate(issuedDate),
+      updated_at: FieldValue.serverTimestamp(),
     });
   }
   
@@ -348,7 +349,7 @@ async function createNotifications(users: any[]) {
         metadata: {
           priority: faker.helpers.arrayElement(['low', 'medium', 'high']),
         },
-        created_at: admin.firestore.Timestamp.fromDate(
+        created_at: Timestamp.fromDate(
           randomDate(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), new Date())
         ),
       });
@@ -371,8 +372,8 @@ async function createFinancialData() {
       month,
       amount: faker.number.int({ min: 50000, max: 150000 }),
       sources: [], // Would be populated from invoices in production
-      created_at: admin.firestore.FieldValue.serverTimestamp(),
-      updated_at: admin.firestore.FieldValue.serverTimestamp(),
+      created_at: FieldValue.serverTimestamp(),
+      updated_at: FieldValue.serverTimestamp(),
     });
   }
   
@@ -393,8 +394,8 @@ async function createFinancialData() {
         vendor: faker.company.name(),
         receipt_url: faker.image.url(),
         approved_by: 'exec-user-id',
-        created_at: admin.firestore.FieldValue.serverTimestamp(),
-        updated_at: admin.firestore.FieldValue.serverTimestamp(),
+        created_at: FieldValue.serverTimestamp(),
+        updated_at: FieldValue.serverTimestamp(),
       });
     }
   }
@@ -441,8 +442,8 @@ async function createFAQ() {
   for (const faq of faqs) {
     await db.collection('faq').add({
       ...faq,
-      created_at: admin.firestore.FieldValue.serverTimestamp(),
-      updated_at: admin.firestore.FieldValue.serverTimestamp(),
+      created_at: FieldValue.serverTimestamp(),
+      updated_at: FieldValue.serverTimestamp(),
     });
   }
   

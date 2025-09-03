@@ -56,10 +56,21 @@ export default function LoginPage() {
         router.push('/welcome');
       } else {
         setError(data.message || 'Login failed');
+        toast.error(data.message || 'Login failed');
       }
     } catch (error: any) {
       console.error('Login error:', error);
-      setError(error.message || 'Invalid email or password');
+      const errorMessage = error.code === 'auth/user-not-found' 
+        ? 'No account found with this email'
+        : error.code === 'auth/wrong-password'
+        ? 'Incorrect password'
+        : error.code === 'auth/invalid-email'
+        ? 'Invalid email address'
+        : error.code === 'auth/too-many-requests'
+        ? 'Too many failed attempts. Please try again later'
+        : error.message || 'Invalid email or password';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }

@@ -1,5 +1,5 @@
 import * as admin from 'firebase-admin';
-import { FieldValue, Timestamp } from 'firebase-admin/firestore';
+import { FieldValue } from 'firebase-admin/firestore';
 import { faker } from '@faker-js/faker';
 
 // Initialize Firebase Admin using Vercel environment variables
@@ -176,17 +176,13 @@ async function createTasks(users: any[]) {
       description: faker.lorem.paragraph(),
       status,
       priority: faker.helpers.arrayElement(priorities),
-      deadline: Timestamp.fromDate(
-        randomDate(new Date(), new Date(Date.now() + 30 * 24 * 60 * 60 * 1000))
-      ),
+      deadline: randomDate(new Date(), new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)),
       assigned_to: assignedTo.map(u => u.id),
       created_by: faker.helpers.arrayElement(users).id,
       project: faker.company.name(),
       tags: faker.helpers.arrayElements(['urgent', 'client-request', 'internal', 'review', 'production'], 2),
-      created_at: Timestamp.fromDate(createdDate),
-      updated_at: Timestamp.fromDate(
-        status === 'completed' ? randomDate(createdDate, new Date()) : createdDate
-      ),
+      created_at: createdDate,
+      updated_at: status === 'completed' ? randomDate(createdDate, new Date()) : createdDate,
     });
   }
   
@@ -207,7 +203,7 @@ async function createShoots(users: any[], clients: any[]) {
     const shootRef = await db.collection('shoots').add({
       clientId: faker.helpers.arrayElement(clients).id,
       title: `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()} Shoot`,
-      date: Timestamp.fromDate(shootDate),
+      date: shootDate,
       location: faker.location.city() + ', ' + faker.location.state(),
       details: faker.lorem.paragraph(),
       status: faker.helpers.arrayElement(statuses),
@@ -257,9 +253,7 @@ async function createLeads(users: any[]) {
       reason: status === 'lost' ? faker.lorem.sentence() : undefined,
       handled_by: faker.helpers.arrayElement(users.filter(u => u.role === 'executive')).id,
       notes: faker.lorem.sentence(),
-      created_at: Timestamp.fromDate(
-        randomDate(new Date(Date.now() - 60 * 24 * 60 * 60 * 1000), new Date())
-      ),
+      created_at: randomDate(new Date(Date.now() - 60 * 24 * 60 * 60 * 1000), new Date()),
       updated_at: FieldValue.serverTimestamp(),
     });
   }
@@ -305,14 +299,14 @@ async function createInvoices(clients: any[]) {
       total,
       status,
       items,
-      issued_at: Timestamp.fromDate(issuedDate),
-      due_date: Timestamp.fromDate(dueDate),
+      issued_at: issuedDate,
+      due_date: dueDate,
       paid_at: status === 'paid' 
-        ? Timestamp.fromDate(randomDate(issuedDate, new Date()))
+        ? randomDate(issuedDate, new Date())
         : undefined,
       payment_method: status === 'paid' ? faker.helpers.arrayElement(paymentMethods) : undefined,
       notes: faker.lorem.sentence(),
-      created_at: Timestamp.fromDate(issuedDate),
+      created_at: issuedDate,
       updated_at: FieldValue.serverTimestamp(),
     });
   }
@@ -349,9 +343,7 @@ async function createNotifications(users: any[]) {
         metadata: {
           priority: faker.helpers.arrayElement(['low', 'medium', 'high']),
         },
-        created_at: Timestamp.fromDate(
-          randomDate(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), new Date())
-        ),
+        created_at: randomDate(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), new Date()),
       });
     }
   }

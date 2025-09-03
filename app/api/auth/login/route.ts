@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminAuth, adminDb } from '@/lib/firebase/admin';
+import { FieldValue } from 'firebase-admin/firestore';
 import { SignJWT } from 'jose';
 import { cookies } from 'next/headers';
 
@@ -60,7 +61,7 @@ export async function POST(request: NextRequest) {
     await adminDb.collection('users').doc(userId).collection('login_history').add({
       device: request.headers.get('user-agent') || 'Unknown',
       ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'Unknown',
-      timestamp: adminDb.FieldValue.serverTimestamp(),
+      timestamp: FieldValue.serverTimestamp(),
       status: 'success',
     });
 

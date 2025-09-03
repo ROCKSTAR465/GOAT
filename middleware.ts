@@ -7,7 +7,7 @@ const JWT_SECRET = new TextEncoder().encode(
 );
 
 // Public paths that don't require authentication
-const publicPaths = ['/login', '/signup', '/', '/api/auth'];
+const publicPaths = ['/login', '/signup', '/', '/welcome', '/api/auth'];
 
 // Role-based path restrictions
 const rolePaths = {
@@ -118,3 +118,4 @@ export const config = {
     '/((?!_next/static|_next/image|favicon.ico|public).*)',
   ],
 };
+

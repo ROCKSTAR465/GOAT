@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
-  output: 'export', // Enables static HTML export for Netlify
+   // Enables static HTML export for Netlify
   images: {
     unoptimized: true, // Required for static HTML export
   },

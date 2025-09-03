@@ -1,19 +1,30 @@
 import * as admin from 'firebase-admin';
 import { faker } from '@faker-js/faker';
-import dotenv from 'dotenv';
 
-// Load environment variables
-dotenv.config({ path: '.env.local' });
-
-// Initialize Firebase Admin
+// Initialize Firebase Admin using Vercel environment variables
 if (!admin.apps.length) {
+  const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
+  const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL;
+  const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, '\n');
+
+  if (!projectId || !clientEmail || !privateKey) {
+    console.error('❌ Missing Firebase Admin credentials in Vercel environment variables');
+    console.error('Required Vercel environment variables:');
+    console.error('- NEXT_PUBLIC_FIREBASE_PROJECT_ID');
+    console.error('- FIREBASE_ADMIN_CLIENT_EMAIL');
+    console.error('- FIREBASE_ADMIN_PRIVATE_KEY');
+    process.exit(1);
+  }
+
   admin.initializeApp({
     credential: admin.credential.cert({
-      projectId: process.env.FIREBASE_ADMIN_PROJECT_ID!,
-      clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL!,
-      privateKey: process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, '\n')!,
+      projectId,
+      clientEmail,
+      privateKey,
     }),
   });
+  
+  console.log('✅ Firebase Admin initialized with Vercel environment variables');
 }
 
 const auth = admin.auth();
